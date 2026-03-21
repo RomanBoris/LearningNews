@@ -1,0 +1,24 @@
+# Built artifacts
+*.iml
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Gradle
+.gradle
+
+# Local machine config (contains SDK path)
+local.properties
+
+# API keys and secrets — NEVER commit these
+secrets.properties
+*.keystore
+*.jks
+
+# IDE
+.idea/
+.DS_Store
+
+# Claude Code memory
+.claude/
