@@ -1,0 +1,15 @@
+package com.pobezhkin.learningnews.data.mapper
+
+import com.pobezhkin.learningnews.data.remote.dto.NewsDto
+import com.pobezhkin.learningnews.domain.model.News
+
+fun NewsDto.toNews() = News(
+    id = url ?: "",
+    title = title ?: "",
+    description = description,
+    url = url ?: "",
+    imageUrl = urlToImage  ,
+    publishedAt = publishedAt ?: "",
+    sourceName = source?.name ?: ""
+
+)
