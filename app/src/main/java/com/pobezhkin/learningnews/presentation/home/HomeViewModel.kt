@@ -1,7 +1,5 @@
 package com.pobezhkin.learningnews.presentation.home
 
-import android.net.http.NetworkException
-
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -32,7 +30,7 @@ class HomeViewModel(
                     val news = getTopHeadlinesUseCase()
                     _state.value = HomeUiState.Success(news = news)
                 }catch (e: IOException){
-                    _state.value = HomeUiState.Error()
+                    _state.value = HomeUiState.Error(e.toString())
 
                 }
 
