@@ -21,8 +21,8 @@
 
 | # | Тема | Статус |
 |---|------|--------|
-| 1 | Clean Architecture — слои, зависимости, зачем | ⏳ |
-| 2 | MVVM + UiState + StateFlow | ⬜ |
+| 1 | Clean Architecture — слои, зависимости, зачем | ✅ |
+| 2 | MVVM + UiState + StateFlow | ⏳ |
 | 3 | Hilt — DI правильно | ⬜ |
 | 4 | Retrofit + OkHttp — News API | ⬜ |
 | 5 | Repository pattern + маппинг | ⬜ |
@@ -40,7 +40,12 @@
 
 ## Пройденные темы
 
-_пока пусто — начинаем_
+### Тема 1 — Clean Architecture (2026-03-26) ✅
+- Создана структура domain / data / presentation
+- domain: News.kt, NewsRepository (interface), GetTopHeadlinesUseCase
+- data: NewsDto, SourceDto, Mapper (extension fun), NewsRepositoryImpl (stub)
+- presentation: HomeViewModel, HomeUiState (sealed class)
+- Разобрано: важность единообразия имён, опасность широкого catch(Exception)
 
 ---
 

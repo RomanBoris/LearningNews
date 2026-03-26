@@ -4,7 +4,7 @@ import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.domain.repository.NewsRepository
 
 class NewsRepositoryImpl: NewsRepository {
-    override suspend fun getAllNews(): List<News> {
+    override suspend fun getTopHeadlines(): List<News> {
         return listOf<News>(News(
             id = "1",
             title = "В эфире новости",

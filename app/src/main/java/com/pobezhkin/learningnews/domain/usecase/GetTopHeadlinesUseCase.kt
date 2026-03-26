@@ -8,6 +8,6 @@ class GetTopHeadlinesUseCase(
 ) {
         suspend operator fun invoke(): List<News>{
 
-                 return   newsRepository.getAllNews()
+                 return   newsRepository.getTopHeadlines()
         }
 }
