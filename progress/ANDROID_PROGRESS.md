@@ -22,8 +22,8 @@
 | # | Тема | Статус |
 |---|------|--------|
 | 1 | Clean Architecture — слои, зависимости, зачем | ✅ |
-| 2 | MVVM + UiState + StateFlow | ⏳ |
-| 3 | Hilt — DI правильно | ⬜ |
+| 2 | MVVM + UiState + StateFlow | ✅ |
+| 3 | Hilt — DI правильно | ⏳ |
 | 4 | Retrofit + OkHttp — News API | ⬜ |
 | 5 | Repository pattern + маппинг | ⬜ |
 | 6 | Error handling — sealed Result | ⬜ |
@@ -39,6 +39,13 @@
 ---
 
 ## Пройденные темы
+
+### Тема 2 — MVVM + UiState + StateFlow (2026-03-26) ✅
+- loadNews() вынесен из init в отдельный метод
+- HomeUiState.Error переименован message, убран дефолт
+- HomeScreen.kt создан — collectAsState, when по sealed class
+- Разобрано: smart cast с делегированным свойством, ViewModelProvider.Factory
+- Приложение запущено на эмуляторе
 
 ### Тема 1 — Clean Architecture (2026-03-26) ✅
 - Создана структура domain / data / presentation
