@@ -2,8 +2,9 @@ package com.pobezhkin.learningnews.data.repository
 
 import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.domain.repository.NewsRepository
+import javax.inject.Inject
 
-class NewsRepositoryImpl: NewsRepository {
+class NewsRepositoryImpl @Inject constructor(): NewsRepository  {
     override suspend fun getTopHeadlines(): List<News> {
         return listOf<News>(News(
             id = "1",
