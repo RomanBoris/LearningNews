@@ -22,3 +22,8 @@ secrets.properties
 
 # Claude Code memory
 .claude/
+
+# Learning materials — local only
+docs/
+docsKT/
+progress/
