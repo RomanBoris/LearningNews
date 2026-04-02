@@ -5,10 +5,10 @@ import com.pobezhkin.learningnews.domain.model.News
 
 fun NewsDto.toNews() = News(
     id = url ?: "",
-    title = title ?: "",
+    title = title ?: "Заголовок невозможно загрузить",
     description = description,
     url = url ?: "",
-    imageUrl = urlToImage  ,
+    imageUrl = urlToImage,
     publishedAt = publishedAt ?: "",
     sourceName = source?.name ?: ""
 
