@@ -9,9 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun DetailNewsScreen(){
+fun DetailNewsScreen(newsUrl : String){
     Box(modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center){
-        Text("Тут будут детали новостей", fontSize = 24.sp)
+        Text("$newsUrl", fontSize = 24.sp)
     }
 }

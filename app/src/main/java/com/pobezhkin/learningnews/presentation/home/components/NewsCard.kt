@@ -12,8 +12,12 @@ import androidx.compose.ui.unit.dp
 import com.pobezhkin.learningnews.domain.model.News
 
 @Composable
-fun NewsCard(news: News) {
+fun NewsCard(news: News, onClick :(String) -> Unit = {}) {
     Card(
+        onClick = {
+            val newsUrl = news.url
+            onClick(newsUrl)
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),

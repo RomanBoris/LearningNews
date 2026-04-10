@@ -19,7 +19,7 @@ import com.pobezhkin.learningnews.presentation.home.components.NewsCard
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
-
+    onNewsClick: (String) -> Unit
     ) {
      val state by viewModel.state.collectAsState()
     val _state = state
@@ -41,7 +41,10 @@ fun HomeScreen(
 
             LazyColumn(modifier = modifier) {
                 items(_state.news) { newsList ->
-                    NewsCard(news = newsList)
+                    NewsCard(
+                        news = newsList,
+                        onClick = onNewsClick
+                    )
                 }
             }
 
