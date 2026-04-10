@@ -1,4 +1,4 @@
-package com.pobezhkin.learningnews.presentation.home.screen
+package com.pobezhkin.learningnews.presentation.home.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
