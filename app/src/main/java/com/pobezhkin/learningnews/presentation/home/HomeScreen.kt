@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pobezhkin.learningnews.presentation.home.screen.NewsCard
 
@@ -32,7 +33,9 @@ fun HomeScreen(
         }
 
         HomeUiState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(modifier = modifier) }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(modifier = modifier)
+            }
         }
 
         is HomeUiState.Success -> {

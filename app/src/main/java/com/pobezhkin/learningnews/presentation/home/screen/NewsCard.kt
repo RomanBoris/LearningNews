@@ -26,11 +26,11 @@ fun NewsCard(news: News) {
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.headlineLarge
                 )
-                if (news.author !== null) {
+                if (news.author != null) {
                     Text(news.author, modifier = Modifier.padding(16.dp))
                 }
 
-                if (news.description !== null) {
+                if (news.description != null) {
                     Text(news.description, modifier = Modifier.padding(16.dp))
                 }
 
