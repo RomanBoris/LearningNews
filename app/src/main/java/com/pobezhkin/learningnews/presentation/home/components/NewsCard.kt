@@ -1,4 +1,4 @@
-package com.pobezhkin.learningnews.presentation.home.screen
+package com.pobezhkin.learningnews.presentation.home.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,8 +12,12 @@ import androidx.compose.ui.unit.dp
 import com.pobezhkin.learningnews.domain.model.News
 
 @Composable
-fun NewsCard(news: News) {
+fun NewsCard(news: News, onClick :(String) -> Unit = {}) {
     Card(
+        onClick = {
+            val newsUrl = news.url
+            onClick(newsUrl)
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
