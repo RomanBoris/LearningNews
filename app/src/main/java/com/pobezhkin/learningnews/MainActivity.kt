@@ -12,7 +12,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
 import com.pobezhkin.learningnews.presentation.home.HomeScreen
+import com.pobezhkin.learningnews.presentation.navigation.NewsNavigationGraph
 import com.pobezhkin.learningnews.ui.theme.LearningNewsTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,14 +26,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
+            val navController = rememberNavController()
             LearningNewsTheme {
                 Scaffold(
                     topBar =  { CenterAlignedTopAppBar( title = {Text("В ЭФИРЕ НОВОСТИ")},) },
                     modifier = Modifier.fillMaxSize(),
                 )  {
+                        NewsNavigationGraph(
+                            modifier = Modifier.padding(it),
+                            navController = navController
+                        )
 
-                    HomeScreen(modifier = Modifier.padding(it))
                 }
 
             }
