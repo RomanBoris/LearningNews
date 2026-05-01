@@ -40,21 +40,21 @@ fun NewsCard(news: News, onClick :(String) -> Unit = {}) {
                 )
                 Text(
                     text = news.title,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(11.dp),
                     style = MaterialTheme.typography.headlineLarge
                 )
 
                 if (news.author != null) {
-                    Text(news.author, modifier = Modifier.padding(16.dp))
+                    Text(news.author, modifier = Modifier.padding(11.dp))
                 }
 
                 if (news.description != null) {
-                    Text(news.description, modifier = Modifier.padding(16.dp))
+                    Text(news.description, modifier = Modifier.padding(11.dp))
                 }
 
                 Text(
                     news.publishedAt,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(11.dp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style =MaterialTheme.typography.labelSmall
                 )

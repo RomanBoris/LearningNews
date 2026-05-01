@@ -1,17 +1,27 @@
 package com.pobezhkin.learningnews.presentation.detail
 
-import androidx.compose.foundation.layout.Box
+import android.annotation.SuppressLint
+import android.net.Uri
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun DetailNewsScreen(newsUrl : String){
-    Box(modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center){
-        Text("$newsUrl", fontSize = 24.sp)
-    }
+fun DetailNewsScreen(newsUrl: String) {
+    val decoderUrl = Uri.decode(newsUrl)
+    AndroidView(
+        factory = { context ->
+            WebView(context).apply {
+                settings.javaScriptEnabled = true
+                webViewClient = WebViewClient()
+                loadUrl(decoderUrl)
+            }
+
+        },
+        modifier = Modifier.fillMaxSize()
+    )
 }
