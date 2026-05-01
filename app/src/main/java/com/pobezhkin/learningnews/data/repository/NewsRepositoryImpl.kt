@@ -19,7 +19,7 @@ class NewsRepositoryImpl @Inject constructor(
     override suspend fun getTopHeadlines():  Result<List<News>> {
         return try {
          val response =  newApiService.getTopHeadlines(
-                "us", NEWS_API_KEY
+                sources = "techcrunch",   NEWS_API_KEY
             ).articles?.map { it.toNews() } ?: emptyList()
             Result.Success(response)
         }catch (e: IOException){

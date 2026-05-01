@@ -31,20 +31,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-            val  navBackStackEntry by navController.currentBackStackEntryAsState()
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
             val showBottomBar = currentRoute == RouteNewsNavigation.NewsList.routeNews ||
                     currentRoute == RouteNewsNavigation.WatchLaterlNews.routeNews
             LearningNewsTheme {
                 Scaffold(
-                    topBar =  { CenterAlignedTopAppBar( title = {Text("В ЭФИРЕ НОВОСТИ")},) },
+                    topBar = { CenterAlignedTopAppBar(title = { Text("В ЭФИРЕ НОВОСТИ") }) },
                     bottomBar = { if (showBottomBar) NewsBottomBarNavigation(navController) },
                     modifier = Modifier.fillMaxSize(),
-                )  {
-                        NewsNavigationGraph(
-                            modifier = Modifier.padding(it),
-                            navController = navController
-                        )
+                ) {
+                    NewsNavigationGraph(
+                        modifier = Modifier.padding(it),
+                        navController = navController
+                    )
 
                 }
 
@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 
 
 //Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
