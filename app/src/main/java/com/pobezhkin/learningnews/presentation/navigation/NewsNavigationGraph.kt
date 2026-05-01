@@ -41,7 +41,8 @@ fun NewsNavigationGraph(navController: NavHostController, modifier: Modifier = M
                 val encoded = backStack.arguments?.getString("newsUrl") ?: ""
                 val newsUrl = Uri.decode(encoded)
                 DetailNewsScreen(
-                    newsUrl = newsUrl
+                    newsUrl = newsUrl,
+                    onBack = { navController.popBackStack() }
                 )
             }
 

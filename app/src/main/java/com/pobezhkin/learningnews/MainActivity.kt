@@ -35,9 +35,11 @@ class MainActivity : ComponentActivity() {
             val currentRoute = navBackStackEntry?.destination?.route
             val showBottomBar = currentRoute == RouteNewsNavigation.NewsList.routeNews ||
                     currentRoute == RouteNewsNavigation.WatchLaterlNews.routeNews
+            val showTopBar = currentRoute == RouteNewsNavigation.NewsList.routeNews ||
+                    currentRoute == RouteNewsNavigation.WatchLaterlNews.routeNews
             LearningNewsTheme {
                 Scaffold(
-                    topBar = { CenterAlignedTopAppBar(title = { Text("В ЭФИРЕ НОВОСТИ") }) },
+                    topBar = { if (showTopBar) CenterAlignedTopAppBar(title = { Text("В ЭФИРЕ НОВОСТИ") }) },
                     bottomBar = { if (showBottomBar) NewsBottomBarNavigation(navController) },
                     modifier = Modifier.fillMaxSize(),
                 ) {
