@@ -9,7 +9,7 @@ fun NewsDto.toNews() = News(
     title = title ?: "Заголовок невозможно загрузить",
     description = description,
     url = url ?: "",
-    imageUrl = urlToImage,
+    urlToImage = urlToImage,
     publishedAt = publishedAt ?: "",
     sourceName = source?.name ?: ""
 
