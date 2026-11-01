@@ -1,18 +1,23 @@
 package com.pobezhkin.learningnews.data.repository
 
+import com.pobezhkin.learningnews.data.article.ArticleTextCodec
 import com.pobezhkin.learningnews.data.local.dao.WatchLaterDao
 import com.pobezhkin.learningnews.data.mapper.toNews
 import com.pobezhkin.learningnews.data.mapper.toSavedNews
 import com.pobezhkin.learningnews.data.mapper.toWatchLaterEntity
+import com.pobezhkin.learningnews.domain.model.ArticleBlock
+import com.pobezhkin.learningnews.domain.model.ArticleTextStatus
 import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.domain.model.SavedNews
 import com.pobezhkin.learningnews.domain.repository.WatchLaterRepository
+import com.pobezhkin.learningnews.domain.util.TimeProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class WatchLaterRepositoryImpl @Inject constructor(
-    private val watchLaterDao: WatchLaterDao
+    private val watchLaterDao: WatchLaterDao,
+    private val timeProvider: TimeProvider
 ) : WatchLaterRepository {
 
     override fun observeSavedNews(): Flow<List<News>> =
@@ -27,7 +32,15 @@ class WatchLaterRepositoryImpl @Inject constructor(
     override suspend fun isSaved(url: String): Boolean = watchLaterDao.exists(url)
 
     override suspend fun save(news: News) {
-        watchLaterDao.insert(news.toWatchLaterEntity(savedAt = System.currentTimeMillis()))
+        watchLaterDao.insert(news.toWatchLaterEntity(savedAt = timeProvider.currentTimeMillis()))
+    }
+
+    override suspend fun updateArticleText(
+        url: String,
+        status: ArticleTextStatus,
+        text: List<ArticleBlock>?
+    ) {
+        watchLaterDao.updateContent(url, status.name, text?.let(ArticleTextCodec::encode))
     }
 
     override suspend fun remove(url: String) {
