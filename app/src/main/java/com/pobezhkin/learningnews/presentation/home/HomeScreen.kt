@@ -24,6 +24,7 @@ import kotlin.math.abs
 @Composable
 fun HomeScreen(
     onNewsClick: (String) -> Unit,
+    onReadClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -78,6 +79,7 @@ fun HomeScreen(
                 items = items,
                 savedUrls = savedUrls,
                 onNewsClick = onNewsClick,
+                onReadClick = onReadClick,
                 onWatchLaterClick = viewModel::onWatchLaterClick
             )
         }

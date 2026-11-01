@@ -3,16 +3,23 @@ package com.pobezhkin.learningnews.presentation.reader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,13 +33,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pobezhkin.learningnews.R
-import com.pobezhkin.learningnews.domain.model.ArticleTextStatus
-import com.pobezhkin.learningnews.domain.model.SavedNews
+import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.presentation.util.toDisplayDate
 
 /**
- * Чтение сохранённой статьи. Всё берётся из базы, поэтому экран работает без сети.
- * Если текста пока нет, показываем описание новости и объясняем, почему.
+ * Чтение статьи. Из избранного всё берётся из базы и работает без сети.
+ * Из ленты текст скачивается по нажатию. Если полного текста нет, показываем краткое
+ * описание и предупреждаем, почему так.
  */
 @Composable
 fun ReaderScreen(
@@ -43,12 +50,7 @@ fun ReaderScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
-        is ReaderUiState.Loading -> Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
+        is ReaderUiState.Loading -> LoadingContent(modifier)
 
         is ReaderUiState.NotFound -> Box(
             modifier = modifier
@@ -63,20 +65,39 @@ fun ReaderScreen(
         }
 
         is ReaderUiState.Content -> ReaderContent(
-            saved = state.saved,
-            onOpenOriginal = { onOpenOriginal(state.saved.news.url) },
+            state = state,
+            onOpenOriginal = { onOpenOriginal(state.news.url) },
+            onRetryClick = viewModel::onRetryClick,
             modifier = modifier
         )
     }
 }
 
 @Composable
+private fun LoadingContent(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator()
+        Text(
+            text = stringResource(R.string.reader_loading),
+            modifier = Modifier.padding(top = 16.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
 private fun ReaderContent(
-    saved: SavedNews,
+    state: ReaderUiState.Content,
     onOpenOriginal: () -> Unit,
+    onRetryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val news = saved.news
+    val news = state.news
 
     Column(
         modifier = modifier
@@ -84,6 +105,56 @@ private fun ReaderContent(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
+        ArticleHeader(news)
+
+        val text = state.text
+        if (state.availability == TextAvailability.READY && !text.isNullOrBlank()) {
+            ArticleBody(text)
+            Text(
+                text = stringResource(R.string.reader_disclaimer),
+                modifier = Modifier.padding(top = 24.dp),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            // Полного текста нет: показываем краткое описание и объясняем, почему так
+            news.description?.takeIf { it.isNotBlank() }?.let { description ->
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            MissingTextNote(
+                availability = state.availability,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
+
+        if (state.availability == TextAvailability.OFFLINE) {
+            OutlinedButton(
+                onClick = onRetryClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
+                Text(stringResource(R.string.action_retry))
+            }
+        }
+
+        Button(
+            onClick = onOpenOriginal,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        ) {
+            Text(stringResource(R.string.reader_open_original))
+        }
+    }
+}
+
+@Composable
+private fun ArticleHeader(news: News) {
+    Column {
         if (news.sourceName.isNotBlank()) {
             Text(
                 text = news.sourceName.uppercase(),
@@ -114,38 +185,6 @@ private fun ReaderContent(
             modifier = Modifier.padding(vertical = 16.dp),
             color = MaterialTheme.colorScheme.outlineVariant
         )
-
-        val text = saved.text
-        if (saved.textStatus == ArticleTextStatus.READY && !text.isNullOrBlank()) {
-            ArticleBody(text)
-            Text(
-                text = stringResource(R.string.reader_disclaimer),
-                modifier = Modifier.padding(top = 24.dp),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        } else {
-            // Полного текста нет: показываем то, что есть, и объясняем, почему так
-            news.description?.takeIf { it.isNotBlank() }?.let { description ->
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-            MissingTextNote(
-                status = saved.textStatus,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-        }
-
-        Button(
-            onClick = onOpenOriginal,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 24.dp)
-        ) {
-            Text(stringResource(R.string.reader_open_original))
-        }
     }
 }
 
@@ -173,26 +212,53 @@ private fun ArticleBody(text: String) {
     }
 }
 
+/** Заметка о том, почему полного текста нет. Предупреждение заметное: значок и цветная плашка. */
 @Composable
 private fun MissingTextNote(
-    status: ArticleTextStatus,
+    availability: TextAvailability,
     modifier: Modifier = Modifier
 ) {
-    val noteRes = when (status) {
-        ArticleTextStatus.UNAVAILABLE -> R.string.reader_note_unavailable
-        else -> R.string.reader_note_pending
+    val isWarning = availability != TextAvailability.PENDING_NETWORK
+    val noteRes = when (availability) {
+        TextAvailability.PENDING_NETWORK -> R.string.reader_note_pending
+        TextAvailability.OFFLINE -> R.string.reader_note_offline
+        else -> R.string.reader_note_unavailable
     }
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
+        color = if (isWarning) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        }
     ) {
-        Text(
-            text = stringResource(noteRes),
+        Row(
             modifier = Modifier.padding(16.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = if (isWarning) Icons.Default.Warning else Icons.Default.Info,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = if (isWarning) {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+            Text(
+                text = stringResource(noteRes),
+                modifier = Modifier.padding(start = 12.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isWarning) {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+        }
     }
 }
 

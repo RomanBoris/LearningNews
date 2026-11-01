@@ -36,16 +36,23 @@ class ArticleTextExtractor @Inject constructor() {
 
     private fun toBlock(element: Element): String? {
         val text = element.text().trim()
+        if (isWidgetStub(text)) return null
         return when (element.tagName()) {
             "p" -> text.takeIf { it.length >= MIN_PARAGRAPH_LENGTH }
             else -> text.takeIf { it.length in MIN_HEADING_LENGTH..MAX_HEADING_LENGTH }?.let { "# $it" }
         }
     }
 
+    /** Заглушки аудиоплеера вроде «Getting your Trinity Audio player ready...» — не часть статьи. */
+    private fun isWidgetStub(text: String): Boolean =
+        text.contains("Trinity Audio", ignoreCase = true) || AUDIO_PLAYER_STUB.containsMatchIn(text)
+
     private companion object {
         const val NOISE_SELECTOR = "script, style, noscript, nav, header, footer, aside, form, " +
             "iframe, figure, figcaption, button, svg, [role=navigation], [role=complementary]"
         const val ARTICLE_SELECTOR = "article, [itemprop=articleBody], main"
+
+        val AUDIO_PLAYER_STUB = Regex("^Getting your .*player ready", RegexOption.IGNORE_CASE)
 
         /** Короткие «абзацы» — это подписи и кнопки, в статью они не входят. */
         const val MIN_PARAGRAPH_LENGTH = 40

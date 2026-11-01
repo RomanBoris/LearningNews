@@ -4,6 +4,7 @@ import com.pobezhkin.learningnews.data.article.ArticleTextExtractor
 import com.pobezhkin.learningnews.data.local.dao.WatchLaterDao
 import com.pobezhkin.learningnews.di.ArticleClient
 import com.pobezhkin.learningnews.domain.model.ArticleDownloadOutcome
+import com.pobezhkin.learningnews.domain.model.ArticleFetchResult
 import com.pobezhkin.learningnews.domain.model.ArticleTextStatus
 import com.pobezhkin.learningnews.domain.repository.ArticleTextRepository
 import kotlinx.coroutines.CancellationException
@@ -20,7 +21,7 @@ class ArticleTextRepositoryImpl @Inject constructor(
     private val watchLaterDao: WatchLaterDao
 ) : ArticleTextRepository {
 
-    override suspend fun downloadText(url: String): ArticleDownloadOutcome =
+    override suspend fun fetchText(url: String): ArticleFetchResult =
         withContext(Dispatchers.IO) {
             try {
                 val request = Request.Builder()
@@ -31,34 +32,39 @@ class ArticleTextRepositoryImpl @Inject constructor(
                     when {
                         response.isSuccessful -> {
                             val html = response.body?.string().orEmpty()
-                            store(url, extractor.extract(html, url))
+                            val text = extractor.extract(html, url)
+                            if (text != null) ArticleFetchResult.Text(text) else ArticleFetchResult.Unavailable
                         }
                         // сервер занят или просит подождать: попробуем позже
                         response.code in RETRYABLE_CODES || response.code >= SERVER_ERROR -> {
-                            ArticleDownloadOutcome.RETRY_LATER
+                            ArticleFetchResult.NetworkError
                         }
                         // 401, 403, 404, 451 и другие: сайт не отдаёт страницу, повторять нет смысла
-                        else -> store(url, null)
+                        else -> ArticleFetchResult.Unavailable
                     }
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IOException) {
-                // нет сети, оборвалось соединение или вышло время: дождёмся сети
-                ArticleDownloadOutcome.RETRY_LATER
+                // нет сети, оборвалось соединение или вышло время
+                ArticleFetchResult.NetworkError
             } catch (e: IllegalArgumentException) {
                 // адрес у новости битый (например, без домена)
-                store(url, null)
+                ArticleFetchResult.Unavailable
             }
         }
 
-    private suspend fun store(url: String, text: String?): ArticleDownloadOutcome =
-        if (text != null) {
-            watchLaterDao.updateContent(url, ArticleTextStatus.READY.name, text)
-            ArticleDownloadOutcome.READY
-        } else {
-            watchLaterDao.updateContent(url, ArticleTextStatus.UNAVAILABLE.name, null)
-            ArticleDownloadOutcome.UNAVAILABLE
+    override suspend fun downloadText(url: String): ArticleDownloadOutcome =
+        when (val result = fetchText(url)) {
+            is ArticleFetchResult.Text -> {
+                watchLaterDao.updateContent(url, ArticleTextStatus.READY.name, result.text)
+                ArticleDownloadOutcome.READY
+            }
+            ArticleFetchResult.Unavailable -> {
+                watchLaterDao.updateContent(url, ArticleTextStatus.UNAVAILABLE.name, null)
+                ArticleDownloadOutcome.UNAVAILABLE
+            }
+            ArticleFetchResult.NetworkError -> ArticleDownloadOutcome.RETRY_LATER
         }
 
     private companion object {

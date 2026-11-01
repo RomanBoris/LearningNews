@@ -14,6 +14,10 @@ interface NewsCacheDao {
     @Query("SELECT * FROM cached_news WHERE category = :category ORDER BY position ASC")
     fun pagingSource(category: String): PagingSource<Int, CachedNewsEntity>
 
+    /** Новость по адресу. Одна и та же может лежать в нескольких темах, берём любую. */
+    @Query("SELECT * FROM cached_news WHERE url = :url LIMIT 1")
+    suspend fun getByUrl(url: String): CachedNewsEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(news: List<CachedNewsEntity>)
 
