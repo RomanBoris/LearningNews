@@ -1,5 +1,6 @@
 package com.pobezhkin.learningnews.data.mapper
 
+import com.pobezhkin.learningnews.data.article.ArticleTextCodec
 import com.pobezhkin.learningnews.data.local.entity.WatchLaterNewsEntity
 import com.pobezhkin.learningnews.domain.model.ArticleTextStatus
 import com.pobezhkin.learningnews.domain.model.News
@@ -33,7 +34,7 @@ fun WatchLaterNewsEntity.toNews() = News(
 fun WatchLaterNewsEntity.toSavedNews() = SavedNews(
     news = toNews(),
     textStatus = contentStatus.toTextStatus(),
-    text = content
+    blocks = content?.let(ArticleTextCodec::decode)
 )
 
 private fun String.toTextStatus(): ArticleTextStatus =

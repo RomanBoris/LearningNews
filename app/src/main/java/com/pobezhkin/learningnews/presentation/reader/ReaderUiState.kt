@@ -1,5 +1,6 @@
 package com.pobezhkin.learningnews.presentation.reader
 
+import com.pobezhkin.learningnews.domain.model.ArticleBlock
 import com.pobezhkin.learningnews.domain.model.News
 
 /** Можно ли прочитать полный текст и что показывать, если нельзя. */
@@ -23,10 +24,10 @@ sealed class ReaderUiState {
     /** Новости нет ни в избранном, ни в кэше ленты. */
     data object NotFound : ReaderUiState()
 
-    /** [text] заполнен только при [TextAvailability.READY]. */
+    /** [blocks] заполнен только при [TextAvailability.READY]. */
     data class Content(
         val news: News,
-        val text: String?,
+        val blocks: List<ArticleBlock>,
         val availability: TextAvailability
     ) : ReaderUiState()
 }

@@ -1,12 +1,12 @@
 package com.pobezhkin.learningnews.data.repository
 
 import com.pobezhkin.learningnews.data.article.ArticleTextExtractor
-import com.pobezhkin.learningnews.data.local.dao.WatchLaterDao
-import com.pobezhkin.learningnews.di.ArticleClient
+import com.pobezhkin.learningnews.data.network.ArticleClient
 import com.pobezhkin.learningnews.domain.model.ArticleDownloadOutcome
 import com.pobezhkin.learningnews.domain.model.ArticleFetchResult
 import com.pobezhkin.learningnews.domain.model.ArticleTextStatus
 import com.pobezhkin.learningnews.domain.repository.ArticleTextRepository
+import com.pobezhkin.learningnews.domain.repository.WatchLaterRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class ArticleTextRepositoryImpl @Inject constructor(
     @ArticleClient private val httpClient: OkHttpClient,
     private val extractor: ArticleTextExtractor,
-    private val watchLaterDao: WatchLaterDao
+    private val watchLaterRepository: WatchLaterRepository
 ) : ArticleTextRepository {
 
     override suspend fun fetchText(url: String): ArticleFetchResult =
@@ -32,8 +32,8 @@ class ArticleTextRepositoryImpl @Inject constructor(
                     when {
                         response.isSuccessful -> {
                             val html = response.body?.string().orEmpty()
-                            val text = extractor.extract(html, url)
-                            if (text != null) ArticleFetchResult.Text(text) else ArticleFetchResult.Unavailable
+                            val blocks = extractor.extract(html, url)
+                            if (blocks != null) ArticleFetchResult.Text(blocks) else ArticleFetchResult.Unavailable
                         }
                         // сервер занят или просит подождать: попробуем позже
                         response.code in RETRYABLE_CODES || response.code >= SERVER_ERROR -> {
@@ -57,11 +57,11 @@ class ArticleTextRepositoryImpl @Inject constructor(
     override suspend fun downloadText(url: String): ArticleDownloadOutcome =
         when (val result = fetchText(url)) {
             is ArticleFetchResult.Text -> {
-                watchLaterDao.updateContent(url, ArticleTextStatus.READY.name, result.text)
+                watchLaterRepository.updateArticleText(url, ArticleTextStatus.READY, result.blocks)
                 ArticleDownloadOutcome.READY
             }
             ArticleFetchResult.Unavailable -> {
-                watchLaterDao.updateContent(url, ArticleTextStatus.UNAVAILABLE.name, null)
+                watchLaterRepository.updateArticleText(url, ArticleTextStatus.UNAVAILABLE, null)
                 ArticleDownloadOutcome.UNAVAILABLE
             }
             ArticleFetchResult.NetworkError -> ArticleDownloadOutcome.RETRY_LATER

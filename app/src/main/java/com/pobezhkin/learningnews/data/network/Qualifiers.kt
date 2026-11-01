@@ -1,4 +1,4 @@
-package com.pobezhkin.learningnews.di
+package com.pobezhkin.learningnews.data.network
 
 import javax.inject.Qualifier
 

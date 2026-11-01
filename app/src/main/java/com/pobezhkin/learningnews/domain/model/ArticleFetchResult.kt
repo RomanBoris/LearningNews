@@ -4,7 +4,7 @@ package com.pobezhkin.learningnews.domain.model
 sealed interface ArticleFetchResult {
 
     /** Текст получен. */
-    data class Text(val text: String) : ArticleFetchResult
+    data class Text(val blocks: List<ArticleBlock>) : ArticleFetchResult
 
     /** Сайт отказал или на странице нет статьи: повторять бессмысленно. */
     data object Unavailable : ArticleFetchResult

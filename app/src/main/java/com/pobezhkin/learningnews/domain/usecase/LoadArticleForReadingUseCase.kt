@@ -19,7 +19,7 @@ class LoadArticleForReadingUseCase @Inject constructor(
         val news = newsRepository.getCachedNews(url) ?: return OnDemandArticle.NotFound
 
         return when (val result = articleTextRepository.fetchText(url)) {
-            is ArticleFetchResult.Text -> OnDemandArticle.Ready(news, result.text)
+            is ArticleFetchResult.Text -> OnDemandArticle.Ready(news, result.blocks)
             ArticleFetchResult.Unavailable -> OnDemandArticle.Unavailable(news)
             ArticleFetchResult.NetworkError -> OnDemandArticle.Offline(news)
         }
