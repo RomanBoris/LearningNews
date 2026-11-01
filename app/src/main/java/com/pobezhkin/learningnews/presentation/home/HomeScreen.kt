@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pobezhkin.learningnews.presentation.home.components.NewsCard
+import com.pobezhkin.learningnews.presentation.components.NewsCard
 
 @Composable
 fun HomeScreen(
@@ -23,6 +23,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.state.collectAsState()
+    val savedUrls by viewModel.savedUrls.collectAsState()
 
     when (val state = uiState) {
         is HomeUiState.Loading -> LoadingContent(modifier)
@@ -31,6 +32,8 @@ fun HomeScreen(
             items(state.news) { news ->
                 NewsCard(
                     news = news,
+                    isSaved = news.url in savedUrls,
+                    onWatchLaterClick = { viewModel.onWatchLaterClick(news) },
                     onClick = onNewsClick
                 )
             }

@@ -17,17 +17,17 @@ fun NewsNavigationGraph(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val openNewsDetail: (String) -> Unit = { url ->
+        navController.navigate(RouteNewsNavigation.DetailNews.createRoute(url))
+    }
+
     NavHost(
         navController = navController,
         startDestination = RouteNewsNavigation.NewsList.route,
         modifier = modifier
     ) {
         composable(RouteNewsNavigation.NewsList.route) {
-            HomeScreen(
-                onNewsClick = { url ->
-                    navController.navigate(RouteNewsNavigation.DetailNews.createRoute(url))
-                }
-            )
+            HomeScreen(onNewsClick = openNewsDetail)
         }
 
         composable(
@@ -44,7 +44,7 @@ fun NewsNavigationGraph(
         }
 
         composable(RouteNewsNavigation.WatchLater.route) {
-            WatchLaterScreen()
+            WatchLaterScreen(onNewsClick = openNewsDetail)
         }
     }
 }

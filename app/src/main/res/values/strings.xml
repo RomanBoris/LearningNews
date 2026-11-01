@@ -8,5 +8,8 @@
     <string name="action_back">Назад</string>
 
     <!-- Смотреть позже -->
-    <string name="watch_later_placeholder">Тут будут сохранённые новости</string>
+    <string name="watch_later_add">Добавить в «Смотреть позже»</string>
+    <string name="watch_later_remove">Убрать из «Смотреть позже»</string>
+    <string name="watch_later_empty_title">Пока ничего не сохранено</string>
+    <string name="watch_later_empty_hint">Нажми на сердечко на карточке новости, чтобы прочитать её позже</string>
 </resources>
