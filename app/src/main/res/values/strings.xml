@@ -13,6 +13,15 @@
     <string name="home_offline_banner">Нет интернета — показаны сохранённые новости</string>
     <string name="home_empty">Новостей пока нет</string>
 
+    <!-- Темы новостей (вкладки на главной) -->
+    <string name="category_general">Главные</string>
+    <string name="category_technology">Технологии</string>
+    <string name="category_business">Бизнес</string>
+    <string name="category_science">Наука</string>
+    <string name="category_sports">Спорт</string>
+    <string name="category_health">Здоровье</string>
+    <string name="category_entertainment">Развлечения</string>
+
     <!-- Смотреть позже -->
     <string name="watch_later_add">Добавить в «Смотреть позже»</string>
     <string name="watch_later_remove">Убрать из «Смотреть позже»</string>
