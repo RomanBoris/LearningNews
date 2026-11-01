@@ -4,13 +4,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.pobezhkin.learningnews.R
+import com.pobezhkin.learningnews.presentation.components.LocalSnackbarHostState
 import com.pobezhkin.learningnews.presentation.home.components.CategoryTabRow
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -23,6 +28,23 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val savedUrls by viewModel.savedUrls.collectAsState()
+
+    // Сеть пропала в момент сохранения: объясняем, что новость в избранном, а текст придёт позже
+    val snackbarHostState = LocalSnackbarHostState.current
+    val savedOfflineMessage = stringResource(R.string.snackbar_saved_offline)
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                HomeEvent.SavedWithoutNetwork -> {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    snackbarHostState.showSnackbar(
+                        message = savedOfflineMessage,
+                        duration = SnackbarDuration.Long
+                    )
+                }
+            }
+        }
+    }
 
     val categories = viewModel.categories
     val pagerState = rememberPagerState(pageCount = { categories.size })

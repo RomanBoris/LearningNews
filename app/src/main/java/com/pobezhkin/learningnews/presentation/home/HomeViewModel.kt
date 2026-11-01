@@ -6,11 +6,14 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.domain.model.NewsCategory
+import com.pobezhkin.learningnews.domain.model.ToggleWatchLaterResult
 import com.pobezhkin.learningnews.domain.usecase.GetTopHeadlinesUseCase
 import com.pobezhkin.learningnews.domain.usecase.ObserveWatchLaterUseCase
 import com.pobezhkin.learningnews.domain.usecase.ToggleWatchLaterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -48,12 +51,18 @@ class HomeViewModel @Inject constructor(
             initialValue = emptySet()
         )
 
+    private val _events = Channel<HomeEvent>(Channel.BUFFERED)
+    val events: Flow<HomeEvent> = _events.receiveAsFlow()
+
     fun newsFlow(category: NewsCategory): Flow<PagingData<News>> =
         newsFlows.getValue(category).value
 
     fun onWatchLaterClick(news: News) {
         viewModelScope.launch {
-            toggleWatchLaterUseCase(news)
+            val result = toggleWatchLaterUseCase(news)
+            if (result is ToggleWatchLaterResult.Saved && result.isOffline) {
+                _events.send(HomeEvent.SavedWithoutNetwork)
+            }
         }
     }
 
