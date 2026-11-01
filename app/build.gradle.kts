@@ -72,6 +72,12 @@ dependencies {
     // Постраничная загрузка
     implementation(libs.androidx.paging.compose)
 
+    // Фоновая загрузка текста статей и разбор страниц
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+    implementation(libs.jsoup)
+
     // Навигация и картинки
     implementation(libs.androidx.navigation.compose)
     implementation(libs.coil.compose)

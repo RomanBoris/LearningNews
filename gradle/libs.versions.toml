@@ -6,6 +6,9 @@ hilt = "2.57.1"
 hiltNavigationCompose = "1.2.0"
 room = "2.7.1"
 paging = "3.3.2"
+work = "2.9.1"
+hiltWork = "1.2.0"
+jsoup = "1.18.1"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 navigationCompose = "2.8.9"
@@ -38,6 +41,12 @@ room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
 
 # Постраничная загрузка
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
+
+# Фоновая загрузка текста статей и разбор страниц
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
+androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltWork" }
+jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 
 # Навигация и картинки
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
