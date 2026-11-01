@@ -14,5 +14,9 @@ data class WatchLaterNewsEntity(
     val publishedAt: String,
     val sourceName: String,
     /** Когда сохранили (мс). По нему сортируем: свежие сверху. */
-    val savedAt: Long
+    val savedAt: Long,
+    /** Текст статьи для чтения без сети. null, пока он не загружен. */
+    val content: String? = null,
+    /** Имя значения [com.pobezhkin.learningnews.domain.model.ArticleTextStatus]. */
+    val contentStatus: String = "PENDING"
 )

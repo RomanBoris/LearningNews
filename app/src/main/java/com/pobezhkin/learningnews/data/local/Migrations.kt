@@ -65,3 +65,17 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         )
     }
 }
+
+/**
+ * Версия 4 → 5: у сохранённых новостей появился текст статьи и статус его загрузки.
+ * Уже сохранённые новости получают статус PENDING: при следующем запуске приложение
+ * поставит их тексты в очередь и загрузит, как только будет сеть.
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `watch_later_news` ADD COLUMN `content` TEXT")
+        db.execSQL(
+            "ALTER TABLE `watch_later_news` ADD COLUMN `contentStatus` TEXT NOT NULL DEFAULT 'PENDING'"
+        )
+    }
+}

@@ -15,7 +15,7 @@ import com.pobezhkin.learningnews.data.local.entity.WatchLaterNewsEntity
         CachedNewsEntity::class,
         RemoteKeyEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class NewsDatabase : RoomDatabase() {

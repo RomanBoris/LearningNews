@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.pobezhkin.learningnews.data.local.MIGRATION_1_2
 import com.pobezhkin.learningnews.data.local.MIGRATION_2_3
 import com.pobezhkin.learningnews.data.local.MIGRATION_3_4
+import com.pobezhkin.learningnews.data.local.MIGRATION_4_5
 import com.pobezhkin.learningnews.data.local.NewsDatabase
 import com.pobezhkin.learningnews.data.local.dao.NewsCacheDao
 import com.pobezhkin.learningnews.data.local.dao.RemoteKeyDao
@@ -26,7 +27,7 @@ object DatabaseModule {
     @Provides
     fun provideNewsDatabase(@ApplicationContext context: Context): NewsDatabase =
         Room.databaseBuilder(context, NewsDatabase::class.java, DATABASE_NAME)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
 
     @Provides
