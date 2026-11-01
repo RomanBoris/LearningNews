@@ -25,10 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pobezhkin.learningnews.R
 import com.pobezhkin.learningnews.presentation.components.NewsCard
+import com.pobezhkin.learningnews.presentation.later.components.ArticleActions
 
 @Composable
 fun WatchLaterScreen(
     onNewsClick: (String) -> Unit,
+    onReadClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: WatchLaterViewModel = hiltViewModel()
 ) {
@@ -45,12 +47,19 @@ fun WatchLaterScreen(
         is WatchLaterUiState.Empty -> EmptyContent(modifier)
 
         is WatchLaterUiState.Content -> LazyColumn(modifier = modifier) {
-            items(state.news, key = { it.url }) { news ->
+            items(state.items, key = { it.news.url }) { saved ->
                 NewsCard(
-                    news = news,
+                    news = saved.news,
                     isSaved = true,
-                    onWatchLaterClick = { viewModel.onRemoveClick(news) },
-                    onClick = onNewsClick
+                    onWatchLaterClick = { viewModel.onRemoveClick(saved.news) },
+                    onClick = onNewsClick,
+                    extraContent = {
+                        ArticleActions(
+                            saved = saved,
+                            onReadClick = { onReadClick(saved.news.url) },
+                            onOriginalClick = { onNewsClick(saved.news.url) }
+                        )
+                    }
                 )
             }
         }

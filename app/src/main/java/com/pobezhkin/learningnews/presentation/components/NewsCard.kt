@@ -3,6 +3,7 @@ package com.pobezhkin.learningnews.presentation.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +38,9 @@ fun NewsCard(
     isSaved: Boolean,
     onWatchLaterClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onClick: (String) -> Unit = {}
+    onClick: (String) -> Unit = {},
+    /** Доп. содержимое внизу карточки: например, кнопки «Читать» и «Оригинал» в избранном. */
+    extraContent: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     Card(
         onClick = { onClick(news.url) },
@@ -106,6 +109,8 @@ fun NewsCard(
                 publishedAt = news.publishedAt,
                 modifier = Modifier.padding(top = 12.dp)
             )
+
+            extraContent?.invoke(this)
         }
     }
 }

@@ -3,7 +3,7 @@ package com.pobezhkin.learningnews.presentation.later
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pobezhkin.learningnews.domain.model.News
-import com.pobezhkin.learningnews.domain.usecase.ObserveWatchLaterUseCase
+import com.pobezhkin.learningnews.domain.usecase.ObserveSavedArticlesUseCase
 import com.pobezhkin.learningnews.domain.usecase.ToggleWatchLaterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,13 +15,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WatchLaterViewModel @Inject constructor(
-    observeWatchLaterUseCase: ObserveWatchLaterUseCase,
+    observeSavedArticlesUseCase: ObserveSavedArticlesUseCase,
     private val toggleWatchLaterUseCase: ToggleWatchLaterUseCase
 ) : ViewModel() {
 
-    val uiState: StateFlow<WatchLaterUiState> = observeWatchLaterUseCase()
-        .map { savedNews ->
-            if (savedNews.isEmpty()) WatchLaterUiState.Empty else WatchLaterUiState.Content(savedNews)
+    val uiState: StateFlow<WatchLaterUiState> = observeSavedArticlesUseCase()
+        .map { saved ->
+            if (saved.isEmpty()) WatchLaterUiState.Empty else WatchLaterUiState.Content(saved)
         }
         .stateIn(
             scope = viewModelScope,

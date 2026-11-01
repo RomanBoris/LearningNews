@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.pobezhkin.learningnews.presentation.detail.DetailNewsScreen
 import com.pobezhkin.learningnews.presentation.home.HomeScreen
 import com.pobezhkin.learningnews.presentation.later.WatchLaterScreen
+import com.pobezhkin.learningnews.presentation.reader.ReaderScreen
 
 @Composable
 fun NewsNavigationGraph(
@@ -20,6 +21,10 @@ fun NewsNavigationGraph(
     val openNewsDetail: (String) -> Unit = { url ->
         navController.navigate(RouteNewsNavigation.DetailNews.createRoute(url))
     }
+    val openReader: (String) -> Unit = { url ->
+        navController.navigate(RouteNewsNavigation.Reader.createRoute(url))
+    }
+    val newsUrlArgument = navArgument(ARG_NEWS_URL) { type = NavType.StringType }
 
     NavHost(
         navController = navController,
@@ -32,16 +37,24 @@ fun NewsNavigationGraph(
 
         composable(
             route = RouteNewsNavigation.DetailNews.route,
-            arguments = listOf(
-                navArgument(ARG_NEWS_URL) { type = NavType.StringType }
-            )
+            arguments = listOf(newsUrlArgument)
         ) { backStackEntry ->
             val encodedUrl = backStackEntry.arguments?.getString(ARG_NEWS_URL).orEmpty()
             DetailNewsScreen(newsUrl = Uri.decode(encodedUrl))
         }
 
+        composable(
+            route = RouteNewsNavigation.Reader.route,
+            arguments = listOf(newsUrlArgument)
+        ) {
+            ReaderScreen(onOpenOriginal = openNewsDetail)
+        }
+
         composable(RouteNewsNavigation.WatchLater.route) {
-            WatchLaterScreen(onNewsClick = openNewsDetail)
+            WatchLaterScreen(
+                onNewsClick = openNewsDetail,
+                onReadClick = openReader
+            )
         }
     }
 }
