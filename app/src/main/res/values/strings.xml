@@ -6,6 +6,11 @@
     <string name="tab_home">Главная</string>
     <string name="tab_watch_later">Смотреть позже</string>
     <string name="action_back">Назад</string>
+    <string name="action_refresh">Обновить</string>
+
+    <!-- Главная -->
+    <string name="home_offline_banner">Нет интернета — показаны сохранённые новости</string>
+    <string name="home_empty">Новостей пока нет</string>
 
     <!-- Смотреть позже -->
     <string name="watch_later_add">Добавить в «Смотреть позже»</string>
