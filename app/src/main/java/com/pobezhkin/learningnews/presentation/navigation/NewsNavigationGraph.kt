@@ -37,10 +37,7 @@ fun NewsNavigationGraph(
             )
         ) { backStackEntry ->
             val encodedUrl = backStackEntry.arguments?.getString(ARG_NEWS_URL).orEmpty()
-            DetailNewsScreen(
-                newsUrl = Uri.decode(encodedUrl),
-                onBack = { navController.popBackStack() }
-            )
+            DetailNewsScreen(newsUrl = Uri.decode(encodedUrl))
         }
 
         composable(RouteNewsNavigation.WatchLater.route) {
