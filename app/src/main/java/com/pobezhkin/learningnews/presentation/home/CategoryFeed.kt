@@ -28,6 +28,7 @@ import androidx.paging.compose.itemKey
 import com.pobezhkin.learningnews.R
 import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.presentation.components.NewsCard
+import com.pobezhkin.learningnews.presentation.home.components.FeedCardActions
 
 /**
  * Лента одной темы. Что показывать, решаем по состоянию загрузки:
@@ -40,6 +41,7 @@ fun CategoryFeed(
     items: LazyPagingItems<News>,
     savedUrls: Set<String>,
     onNewsClick: (String) -> Unit,
+    onReadClick: (String) -> Unit,
     onWatchLaterClick: (News) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -83,7 +85,13 @@ fun CategoryFeed(
                             news = news,
                             isSaved = news.url in savedUrls,
                             onWatchLaterClick = { onWatchLaterClick(news) },
-                            onClick = onNewsClick
+                            onClick = onNewsClick,
+                            extraContent = {
+                                FeedCardActions(
+                                    onReadClick = { onReadClick(news.url) },
+                                    onOriginalClick = { onNewsClick(news.url) }
+                                )
+                            }
                         )
                     }
                 }

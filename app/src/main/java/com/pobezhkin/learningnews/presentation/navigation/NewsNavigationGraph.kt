@@ -32,7 +32,10 @@ fun NewsNavigationGraph(
         modifier = modifier
     ) {
         composable(RouteNewsNavigation.NewsList.route) {
-            HomeScreen(onNewsClick = openNewsDetail)
+            HomeScreen(
+                onNewsClick = openNewsDetail,
+                onReadClick = openReader
+            )
         }
 
         composable(
