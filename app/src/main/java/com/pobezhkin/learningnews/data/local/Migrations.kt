@@ -48,3 +48,20 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         )
     }
 }
+
+/**
+ * Версия 3 → 4: добавили таблицу ключей страниц для постраничной загрузки.
+ * Старый кэш не знает, на какой странице остановился, поэтому очищаем его:
+ * лента загрузится заново с первой страницы. «Смотреть позже» не трогаем.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DELETE FROM `cached_news`")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `remote_keys` (" +
+                "`category` TEXT NOT NULL, " +
+                "`nextPage` INTEGER, " +
+                "PRIMARY KEY(`category`))"
+        )
+    }
+}
