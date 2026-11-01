@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">LearningNews</string>
+
+    <!-- Навигация -->
+    <string name="top_bar_title">В ЭФИРЕ НОВОСТИ</string>
+    <string name="tab_home">Главная</string>
+    <string name="tab_watch_later">Смотреть позже</string>
+    <string name="action_back">Назад</string>
+
+    <!-- Смотреть позже -->
+    <string name="watch_later_placeholder">Тут будут сохранённые новости</string>
 </resources>

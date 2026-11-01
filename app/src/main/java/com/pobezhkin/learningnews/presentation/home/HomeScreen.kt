@@ -2,6 +2,7 @@ package com.pobezhkin.learningnews.presentation.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -11,44 +12,50 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pobezhkin.learningnews.presentation.home.components.NewsCard
 
 @Composable
 fun HomeScreen(
+    onNewsClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel(),
-    onNewsClick: (String) -> Unit
-    ) {
-     val state by viewModel.state.collectAsState()
-    val _state = state
+    viewModel: HomeViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.state.collectAsState()
 
-    when (_state) {
-        is HomeUiState.Error -> {
-
-            Text("${_state.message}")
-
-        }
-
-        HomeUiState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(modifier = modifier)
+    when (val state = uiState) {
+        is HomeUiState.Loading -> LoadingContent(modifier)
+        is HomeUiState.Error -> ErrorContent(message = state.message, modifier = modifier)
+        is HomeUiState.Success -> LazyColumn(modifier = modifier) {
+            items(state.news) { news ->
+                NewsCard(
+                    news = news,
+                    onClick = onNewsClick
+                )
             }
-        }
-
-        is HomeUiState.Success -> {
-
-            LazyColumn(modifier = modifier) {
-                items(_state.news) { newsList ->
-                    NewsCard(
-                        news = newsList,
-                        onClick = onNewsClick
-                    )
-                }
-            }
-
         }
     }
 }
 
+@Composable
+private fun LoadingContent(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ErrorContent(message: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = message)
+    }
+}

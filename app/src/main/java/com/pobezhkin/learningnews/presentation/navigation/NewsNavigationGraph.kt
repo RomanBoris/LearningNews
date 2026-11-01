@@ -10,46 +10,41 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.pobezhkin.learningnews.presentation.detail.DetailNewsScreen
 import com.pobezhkin.learningnews.presentation.home.HomeScreen
-import com.pobezhkin.learningnews.presentation.later.WatchNewsLater
+import com.pobezhkin.learningnews.presentation.later.WatchLaterScreen
 
 @Composable
-fun NewsNavigationGraph(navController: NavHostController, modifier: Modifier = Modifier) {
+fun NewsNavigationGraph(
+    navController: NavHostController,
+    modifier: Modifier = Modifier
+) {
     NavHost(
         navController = navController,
-        startDestination = RouteNewsNavigation.NewsList.routeNews
+        startDestination = RouteNewsNavigation.NewsList.route,
+        modifier = modifier
     ) {
-        composable(RouteNewsNavigation.NewsList.routeNews) {
+        composable(RouteNewsNavigation.NewsList.route) {
             HomeScreen(
-                modifier = Modifier,
-
                 onNewsClick = { url ->
-                    navController.navigate(
-                        RouteNewsNavigation.DetailNews.createRouteNews(Uri.encode(url))
-                    )
+                    navController.navigate(RouteNewsNavigation.DetailNews.createRoute(url))
                 }
             )
         }
 
-            composable(
-                route = RouteNewsNavigation.DetailNews.routeNews,
-                arguments = listOf(
-                    navArgument("newsUrl") {
-                        type = NavType.StringType
-                    }
-                )
-            ) {backStack ->
-                val encoded = backStack.arguments?.getString("newsUrl") ?: ""
-                val newsUrl = Uri.decode(encoded)
-                DetailNewsScreen(
-                    newsUrl = newsUrl,
-                    onBack = { navController.popBackStack() }
-                )
-            }
-
-        composable(RouteNewsNavigation.WatchLaterlNews.routeNews) {
-            WatchNewsLater()
+        composable(
+            route = RouteNewsNavigation.DetailNews.route,
+            arguments = listOf(
+                navArgument(ARG_NEWS_URL) { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val encodedUrl = backStackEntry.arguments?.getString(ARG_NEWS_URL).orEmpty()
+            DetailNewsScreen(
+                newsUrl = Uri.decode(encodedUrl),
+                onBack = { navController.popBackStack() }
+            )
         }
 
-
+        composable(RouteNewsNavigation.WatchLater.route) {
+            WatchLaterScreen()
         }
     }
+}
