@@ -1,15 +1,12 @@
 package com.pobezhkin.learningnews.domain.usecase
 
-import com.pobezhkin.learningnews.domain.model.News
+import com.pobezhkin.learningnews.domain.model.NewsFeed
 import com.pobezhkin.learningnews.domain.repository.NewsRepository
-import javax.inject.Inject
 import com.pobezhkin.learningnews.domain.util.Result
+import javax.inject.Inject
 
 class GetTopHeadlinesUseCase @Inject constructor(
-   private val newsRepository: NewsRepository
+    private val newsRepository: NewsRepository
 ) {
-        suspend operator fun invoke(): Result<List<News>>{
-
-                 return   newsRepository.getTopHeadlines()
-        }
+    suspend operator fun invoke(): Result<NewsFeed> = newsRepository.getTopHeadlines()
 }

@@ -27,6 +27,10 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
+    /** Идёт обновление свайпом: список остаётся на экране, сверху крутится индикатор. */
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     /** Адреса новостей из «Смотреть позже» — по ним карточка рисует заполненное сердечко. */
     val savedUrls: StateFlow<Set<String>> = observeWatchLaterUseCase()
         .map { savedNews -> savedNews.map { it.url }.toSet() }
@@ -46,14 +50,39 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun loadNews() {
+    /** Кнопка «Обновить» на экране ошибки: возвращаем крутилку и грузим заново. */
+    fun onRetryClick() {
+        _state.value = HomeUiState.Loading
+        loadNews()
+    }
+
+    /** Свайп вниз или кнопка «Обновить» в плашке офлайн-режима. */
+    fun onRefresh() {
+        if (_isRefreshing.value) return
         viewModelScope.launch {
-            _state.value = when (val result = getTopHeadlinesUseCase()) {
-                is Result.Success -> HomeUiState.Success(result.data)
-                is Result.Error -> HomeUiState.Error(result.message)
+            _isRefreshing.value = true
+            try {
+                _state.value = loadState()
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }
+
+    private fun loadNews() {
+        viewModelScope.launch {
+            _state.value = loadState()
+        }
+    }
+
+    private suspend fun loadState(): HomeUiState =
+        when (val result = getTopHeadlinesUseCase()) {
+            is Result.Success -> HomeUiState.Success(
+                news = result.data.news,
+                isOffline = result.data.isFromCache
+            )
+            is Result.Error -> HomeUiState.Error(result.message)
+        }
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
