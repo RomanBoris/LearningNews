@@ -5,6 +5,7 @@ ksp = "2.0.21-1.0.27"
 hilt = "2.57.1"
 hiltNavigationCompose = "1.2.0"
 room = "2.7.1"
+paging = "3.3.2"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
 navigationCompose = "2.8.9"
@@ -33,6 +34,10 @@ androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navig
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
+
+# Постраничная загрузка
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 
 # Навигация и картинки
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }

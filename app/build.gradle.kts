@@ -66,7 +66,11 @@ dependencies {
     // База данных
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.room.paging)
     ksp(libs.room.compiler)
+
+    // Постраничная загрузка
+    implementation(libs.androidx.paging.compose)
 
     // Навигация и картинки
     implementation(libs.androidx.navigation.compose)
