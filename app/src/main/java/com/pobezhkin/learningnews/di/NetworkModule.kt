@@ -10,6 +10,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -17,6 +18,9 @@ import javax.inject.Singleton
 object NetworkModule {
 
     private const val BASE_URL = "https://newsapi.org/"
+
+    /** Приложение называет себя честно: подделывать браузер для обхода защиты сайтов мы не будем. */
+    private const val ARTICLE_USER_AGENT = "LearningNews/1.0 (Android; offline reader)"
 
     @Singleton
     @Provides
@@ -35,6 +39,24 @@ object NetworkModule {
     fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
+            .build()
+
+    /** Клиент для страниц статей: свои таймауты, имя приложения в User-Agent, без лога тела ответа. */
+    @Singleton
+    @Provides
+    @ArticleClient
+    fun provideArticleOkHttpClient(): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .callTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor { chain ->
+                chain.proceed(
+                    chain.request().newBuilder()
+                        .header("User-Agent", ARTICLE_USER_AGENT)
+                        .build()
+                )
+            }
             .build()
 
     @Singleton
