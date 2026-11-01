@@ -3,6 +3,7 @@
 
     <!-- Навигация -->
     <string name="top_bar_title">В ЭФИРЕ НОВОСТИ</string>
+    <string name="screen_article">Статья</string>
     <string name="tab_home">Главная</string>
     <string name="tab_watch_later">Смотреть позже</string>
     <string name="action_back">Назад</string>
