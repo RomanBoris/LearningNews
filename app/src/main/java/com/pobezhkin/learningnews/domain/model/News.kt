@@ -9,4 +9,8 @@ data class News(
     val urlToImage: String?,
     val publishedAt: String,
     val sourceName: String
-)
+) {
+    /** Автор для показа. Иногда вместо имени приходит ссылка на сайт: такое не показываем. */
+    val authorName: String?
+        get() = author?.takeIf { it.isNotBlank() && !it.startsWith("http") }
+}

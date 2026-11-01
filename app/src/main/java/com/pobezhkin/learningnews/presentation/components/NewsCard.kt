@@ -105,7 +105,7 @@ fun NewsCard(
             }
 
             NewsMeta(
-                author = news.author,
+                author = news.authorName,
                 publishedAt = news.publishedAt,
                 modifier = Modifier.padding(top = 12.dp)
             )
@@ -115,19 +115,17 @@ fun NewsCard(
     }
 }
 
-/** Автор и дата в одну строку. Автором иногда приходит ссылка на сайт: такое не показываем. */
+/** Автор (если он есть) и дата в одну строку. */
 @Composable
 private fun NewsMeta(
     author: String?,
     publishedAt: String,
     modifier: Modifier = Modifier
 ) {
-    val authorName = author?.takeIf { it.isNotBlank() && !it.startsWith("http") }
-
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        if (authorName != null) {
+        if (author != null) {
             Text(
-                text = authorName,
+                text = author,
                 modifier = Modifier.weight(1f, fill = false),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -1,6 +1,7 @@
 package com.pobezhkin.learningnews.di
 
 import com.pobezhkin.learningnews.BuildConfig
+import com.pobezhkin.learningnews.data.network.ArticleClient
 import com.pobezhkin.learningnews.data.remote.NewsApiService
 import dagger.Module
 import dagger.Provides

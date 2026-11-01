@@ -1,5 +1,6 @@
 package com.pobezhkin.learningnews.data.article
 
+import com.pobezhkin.learningnews.domain.model.ArticleBlock
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -7,22 +8,20 @@ import javax.inject.Inject
 
 /**
  * Достаёт из HTML-страницы статью: заголовки подразделов и абзацы, без рекламы, меню и скриптов.
- * Результат — обычный текст: абзацы разделены пустой строкой, заголовки подразделов начинаются с «# ».
  */
 class ArticleTextExtractor @Inject constructor() {
 
-    /** Возвращает текст статьи или null, если на странице нормального текста нет. */
-    fun extract(html: String, baseUrl: String): String? {
+    /** Возвращает блоки статьи или null, если на странице нормального текста нет. */
+    fun extract(html: String, baseUrl: String): List<ArticleBlock>? {
         val document = Jsoup.parse(html, baseUrl)
         document.select(NOISE_SELECTOR).remove()
 
-        val text = findArticleRoot(document)
+        val blocks = findArticleRoot(document)
             .select("h2, h3, p")
             .mapNotNull(::toBlock)
             .distinct()
-            .joinToString(separator = "\n\n")
 
-        return text.takeIf { it.length >= MIN_TEXT_LENGTH }?.take(MAX_TEXT_LENGTH)
+        return limitLength(blocks).takeIf { textLength(it) >= MIN_TEXT_LENGTH }
     }
 
     /** Берём блок, в котором больше всего абзацев. Если подходящего нет, ищем по всей странице. */
@@ -34,18 +33,33 @@ class ArticleTextExtractor @Inject constructor() {
     private fun paragraphsLength(element: Element): Int =
         element.select("p").sumOf { it.text().length }
 
-    private fun toBlock(element: Element): String? {
+    private fun toBlock(element: Element): ArticleBlock? {
         val text = element.text().trim()
         if (isWidgetStub(text)) return null
         return when (element.tagName()) {
-            "p" -> text.takeIf { it.length >= MIN_PARAGRAPH_LENGTH }
-            else -> text.takeIf { it.length in MIN_HEADING_LENGTH..MAX_HEADING_LENGTH }?.let { "# $it" }
+            "p" -> text.takeIf { it.length >= MIN_PARAGRAPH_LENGTH }?.let(ArticleBlock::Paragraph)
+            else -> text.takeIf { it.length in MIN_HEADING_LENGTH..MAX_HEADING_LENGTH }
+                ?.let(ArticleBlock::Heading)
         }
     }
 
     /** Заглушки аудиоплеера вроде «Getting your Trinity Audio player ready...» — не часть статьи. */
     private fun isWidgetStub(text: String): Boolean =
         text.contains("Trinity Audio", ignoreCase = true) || AUDIO_PLAYER_STUB.containsMatchIn(text)
+
+    private fun textLength(blocks: List<ArticleBlock>): Int = blocks.sumOf { it.text.length }
+
+    /** Очень длинную страницу обрезаем по границе блока, а не посреди абзаца. */
+    private fun limitLength(blocks: List<ArticleBlock>): List<ArticleBlock> {
+        val limited = mutableListOf<ArticleBlock>()
+        var total = 0
+        for (block in blocks) {
+            total += block.text.length
+            if (total > MAX_TEXT_LENGTH) break
+            limited += block
+        }
+        return limited
+    }
 
     private companion object {
         const val NOISE_SELECTOR = "script, style, noscript, nav, header, footer, aside, form, " +

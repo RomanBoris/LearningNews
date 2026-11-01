@@ -23,7 +23,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +31,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pobezhkin.learningnews.R
+import com.pobezhkin.learningnews.domain.model.ArticleBlock
 import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.presentation.util.toDisplayDate
 
@@ -47,7 +48,7 @@ fun ReaderScreen(
     modifier: Modifier = Modifier,
     viewModel: ReaderViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     when (val state = uiState) {
         is ReaderUiState.Loading -> LoadingContent(modifier)
@@ -107,9 +108,8 @@ private fun ReaderContent(
     ) {
         ArticleHeader(news)
 
-        val text = state.text
-        if (state.availability == TextAvailability.READY && !text.isNullOrBlank()) {
-            ArticleBody(text)
+        if (state.availability == TextAvailability.READY && state.blocks.isNotEmpty()) {
+            ArticleBody(state.blocks)
             Text(
                 text = stringResource(R.string.reader_disclaimer),
                 modifier = Modifier.padding(top = 24.dp),
@@ -175,7 +175,7 @@ private fun ArticleHeader(news: News) {
         )
 
         Text(
-            text = readerMeta(news.author, news.publishedAt.toDisplayDate()),
+            text = readerMeta(news.authorName, news.publishedAt.toDisplayDate()),
             modifier = Modifier.padding(top = 12.dp),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -188,23 +188,21 @@ private fun ArticleHeader(news: News) {
     }
 }
 
-/** Абзацы разделены пустой строкой, заголовки подразделов помечены «# » в начале. */
 @Composable
-private fun ArticleBody(text: String) {
+private fun ArticleBody(blocks: List<ArticleBlock>) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        text.split("\n\n").forEach { block ->
-            if (block.startsWith("# ")) {
-                Text(
-                    text = block.removePrefix("# "),
+        blocks.forEach { block ->
+            when (block) {
+                is ArticleBlock.Heading -> Text(
+                    text = block.text,
                     modifier = Modifier.padding(top = 8.dp),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontSize = 19.sp,
                         lineHeight = 26.sp
                     )
                 )
-            } else {
-                Text(
-                    text = block,
+                is ArticleBlock.Paragraph -> Text(
+                    text = block.text,
                     style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 27.sp)
                 )
             }
@@ -262,8 +260,6 @@ private fun MissingTextNote(
     }
 }
 
-/** Автор и дата в одну строку. Автором иногда приходит ссылка на сайт: такое не показываем. */
-private fun readerMeta(author: String?, date: String): String {
-    val authorName = author?.takeIf { it.isNotBlank() && !it.startsWith("http") }
-    return if (authorName != null) "$authorName  ·  $date" else date
-}
+/** Автор (если он есть) и дата в одну строку. */
+private fun readerMeta(author: String?, date: String): String =
+    if (author != null) "$author  ·  $date" else date

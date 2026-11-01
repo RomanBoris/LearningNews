@@ -5,7 +5,6 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.pobezhkin.learningnews.BuildConfig.NEWS_API_KEY
 import com.pobezhkin.learningnews.data.local.NewsDatabase
 import com.pobezhkin.learningnews.data.local.dao.NewsCacheDao
 import com.pobezhkin.learningnews.data.local.dao.RemoteKeyDao
@@ -31,7 +30,9 @@ class NewsRemoteMediator(
     private val newsApiService: NewsApiService,
     private val database: NewsDatabase,
     private val newsCacheDao: NewsCacheDao,
-    private val remoteKeyDao: RemoteKeyDao
+    private val remoteKeyDao: RemoteKeyDao,
+    private val apiKey: String,
+    private val country: String
 ) : RemoteMediator<Int, CachedNewsEntity>() {
 
     /** При первом показе темы сначала обновляем её с сервера. Пока грузится, виден кэш. */
@@ -51,11 +52,11 @@ class NewsRemoteMediator(
 
         return try {
             val response = newsApiService.getTopHeadlines(
-                country = COUNTRY,
+                country = country,
                 category = category.toApiValue(),
                 page = page,
                 pageSize = PAGE_SIZE,
-                apiKey = NEWS_API_KEY
+                apiKey = apiKey
             )
             val articles = response.articles.orEmpty()
 
@@ -99,14 +100,13 @@ class NewsRemoteMediator(
     }
 
     private fun Throwable.toLoadException(): NewsLoadException = when (this) {
-        is IOException -> NewsLoadException("Нет подключения к интернету", this)
-        is HttpException -> NewsLoadException("Ошибка сервера: ${code()}", this)
-        else -> NewsLoadException("Неизвестная ошибка", this)
+        is IOException -> NewsLoadException.NoConnection(this)
+        is HttpException -> NewsLoadException.Server(code(), this)
+        else -> NewsLoadException.Unknown(this)
     }
 
     companion object {
         const val PAGE_SIZE = 20
         private const val FIRST_PAGE = 1
-        private const val COUNTRY = "us"
     }
 }

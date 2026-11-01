@@ -5,12 +5,10 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-import com.pobezhkin.learningnews.data.local.NewsDatabase
 import com.pobezhkin.learningnews.data.local.dao.NewsCacheDao
-import com.pobezhkin.learningnews.data.local.dao.RemoteKeyDao
 import com.pobezhkin.learningnews.data.mapper.toNews
 import com.pobezhkin.learningnews.data.paging.NewsRemoteMediator
-import com.pobezhkin.learningnews.data.remote.NewsApiService
+import com.pobezhkin.learningnews.data.paging.NewsRemoteMediatorFactory
 import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.domain.model.NewsCategory
 import com.pobezhkin.learningnews.domain.repository.NewsRepository
@@ -19,10 +17,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class NewsRepositoryImpl @Inject constructor(
-    private val newsApiService: NewsApiService,
-    private val database: NewsDatabase,
-    private val newsCacheDao: NewsCacheDao,
-    private val remoteKeyDao: RemoteKeyDao
+    private val mediatorFactory: NewsRemoteMediatorFactory,
+    private val newsCacheDao: NewsCacheDao
 ) : NewsRepository {
 
     @OptIn(ExperimentalPagingApi::class)
@@ -36,13 +32,7 @@ class NewsRepositoryImpl @Inject constructor(
                 prefetchDistance = PREFETCH_DISTANCE,
                 enablePlaceholders = false
             ),
-            remoteMediator = NewsRemoteMediator(
-                category = category,
-                newsApiService = newsApiService,
-                database = database,
-                newsCacheDao = newsCacheDao,
-                remoteKeyDao = remoteKeyDao
-            ),
+            remoteMediator = mediatorFactory.create(category),
             pagingSourceFactory = { newsCacheDao.pagingSource(category.name) }
         ).flow.map { pagingData -> pagingData.map { it.toNews() } }
 

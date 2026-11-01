@@ -7,7 +7,7 @@ sealed interface OnDemandArticle {
     data object NotFound : OnDemandArticle
 
     /** Текст получен, читать можно. */
-    data class Ready(val news: News, val text: String) : OnDemandArticle
+    data class Ready(val news: News, val blocks: List<ArticleBlock>) : OnDemandArticle
 
     /** Источник не отдаёт текст: показываем только то, что есть в самой новости. */
     data class Unavailable(val news: News) : OnDemandArticle

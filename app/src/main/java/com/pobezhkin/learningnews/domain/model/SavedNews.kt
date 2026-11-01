@@ -16,6 +16,6 @@ enum class ArticleTextStatus {
 data class SavedNews(
     val news: News,
     val textStatus: ArticleTextStatus,
-    /** Абзацы разделены пустой строкой, заголовки подразделов начинаются с «# ». */
-    val text: String?
+    /** null, пока текст не загружен. */
+    val blocks: List<ArticleBlock>?
 )
