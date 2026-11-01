@@ -14,4 +14,7 @@ interface NewsRepository {
      * в состоянии загрузки списка.
      */
     fun getNewsPaged(category: NewsCategory): Flow<PagingData<News>>
+
+    /** Новость из локального кэша ленты по адресу. null — такой новости в кэше нет. */
+    suspend fun getCachedNews(url: String): News?
 }

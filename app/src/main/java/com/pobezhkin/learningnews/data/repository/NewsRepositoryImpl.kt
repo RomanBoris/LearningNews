@@ -46,6 +46,8 @@ class NewsRepositoryImpl @Inject constructor(
             pagingSourceFactory = { newsCacheDao.pagingSource(category.name) }
         ).flow.map { pagingData -> pagingData.map { it.toNews() } }
 
+    override suspend fun getCachedNews(url: String): News? = newsCacheDao.getByUrl(url)?.toNews()
+
     private companion object {
         const val PREFETCH_DISTANCE = 5
     }
