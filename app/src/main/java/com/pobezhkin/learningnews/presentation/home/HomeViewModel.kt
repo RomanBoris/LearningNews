@@ -3,6 +3,7 @@ package com.pobezhkin.learningnews.presentation.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pobezhkin.learningnews.domain.model.News
+import com.pobezhkin.learningnews.domain.model.NewsCategory
 import com.pobezhkin.learningnews.domain.usecase.GetTopHeadlinesUseCase
 import com.pobezhkin.learningnews.domain.usecase.ObserveWatchLaterUseCase
 import com.pobezhkin.learningnews.domain.usecase.ToggleWatchLaterUseCase
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,12 +26,16 @@ class HomeViewModel @Inject constructor(
     private val toggleWatchLaterUseCase: ToggleWatchLaterUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
-    val state: StateFlow<HomeUiState> = _state.asStateFlow()
+    /** Темы в порядке вкладок. */
+    val categories: List<NewsCategory> = NewsCategory.entries
 
-    /** Идёт обновление свайпом: список остаётся на экране, сверху крутится индикатор. */
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+    /** Ленты тех тем, которые уже открывали. Темы, которых здесь нет, ещё не загружались. */
+    private val _feeds = MutableStateFlow<Map<NewsCategory, FeedUiState>>(emptyMap())
+    val feeds: StateFlow<Map<NewsCategory, FeedUiState>> = _feeds.asStateFlow()
+
+    /** Темы, которые обновляются свайпом: список остаётся на экране, сверху крутится индикатор. */
+    private val _refreshing = MutableStateFlow<Set<NewsCategory>>(emptySet())
+    val refreshing: StateFlow<Set<NewsCategory>> = _refreshing.asStateFlow()
 
     /** Адреса новостей из «Смотреть позже» — по ним карточка рисует заполненное сердечко. */
     val savedUrls: StateFlow<Set<String>> = observeWatchLaterUseCase()
@@ -40,8 +46,31 @@ class HomeViewModel @Inject constructor(
             initialValue = emptySet()
         )
 
-    init {
-        loadNews()
+    /**
+     * Вкладку показали на экране. Грузим её только в первый раз: так мы не тратим
+     * запросы на темы, до которых пользователь не дошёл (на бесплатном ключе их 100 в день).
+     */
+    fun onCategoryShown(category: NewsCategory) {
+        if (_feeds.value.containsKey(category)) return
+        load(category)
+    }
+
+    /** Кнопка «Обновить» на экране ошибки: возвращаем крутилку и грузим заново. */
+    fun onRetryClick(category: NewsCategory) {
+        load(category)
+    }
+
+    /** Свайп вниз или кнопка «Обновить» в плашке офлайн-режима. */
+    fun onRefresh(category: NewsCategory) {
+        if (category in _refreshing.value) return
+        viewModelScope.launch {
+            _refreshing.update { it + category }
+            try {
+                setFeed(category, loadFeed(category))
+            } finally {
+                _refreshing.update { it - category }
+            }
+        }
     }
 
     fun onWatchLaterClick(news: News) {
@@ -50,38 +79,24 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** Кнопка «Обновить» на экране ошибки: возвращаем крутилку и грузим заново. */
-    fun onRetryClick() {
-        _state.value = HomeUiState.Loading
-        loadNews()
-    }
-
-    /** Свайп вниз или кнопка «Обновить» в плашке офлайн-режима. */
-    fun onRefresh() {
-        if (_isRefreshing.value) return
+    private fun load(category: NewsCategory) {
+        setFeed(category, FeedUiState.Loading)
         viewModelScope.launch {
-            _isRefreshing.value = true
-            try {
-                _state.value = loadState()
-            } finally {
-                _isRefreshing.value = false
-            }
+            setFeed(category, loadFeed(category))
         }
     }
 
-    private fun loadNews() {
-        viewModelScope.launch {
-            _state.value = loadState()
-        }
+    private fun setFeed(category: NewsCategory, feed: FeedUiState) {
+        _feeds.update { it + (category to feed) }
     }
 
-    private suspend fun loadState(): HomeUiState =
-        when (val result = getTopHeadlinesUseCase()) {
-            is Result.Success -> HomeUiState.Success(
+    private suspend fun loadFeed(category: NewsCategory): FeedUiState =
+        when (val result = getTopHeadlinesUseCase(category)) {
+            is Result.Success -> FeedUiState.Success(
                 news = result.data.news,
                 isOffline = result.data.isFromCache
             )
-            is Result.Error -> HomeUiState.Error(result.message)
+            is Result.Error -> FeedUiState.Error(result.message)
         }
 
     private companion object {
