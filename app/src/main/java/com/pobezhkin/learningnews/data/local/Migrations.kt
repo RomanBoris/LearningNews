@@ -24,3 +24,27 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         )
     }
 }
+
+/**
+ * Версия 2 → 3: кэш теперь хранит ленту отдельно для каждой темы (ключ — тема + адрес).
+ * Кэш — это копия данных с сервера, поэтому таблицу проще пересоздать, чем переносить:
+ * лента подгрузится заново. «Смотреть позже» не трогаем.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `cached_news`")
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `cached_news` (" +
+                "`category` TEXT NOT NULL, " +
+                "`url` TEXT NOT NULL, " +
+                "`author` TEXT, " +
+                "`title` TEXT NOT NULL, " +
+                "`description` TEXT, " +
+                "`urlToImage` TEXT, " +
+                "`publishedAt` TEXT NOT NULL, " +
+                "`sourceName` TEXT NOT NULL, " +
+                "`position` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`category`, `url`))"
+        )
+    }
+}

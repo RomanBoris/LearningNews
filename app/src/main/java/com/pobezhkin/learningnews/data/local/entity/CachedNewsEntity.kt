@@ -1,12 +1,16 @@
 package com.pobezhkin.learningnews.data.local.entity
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-/** Последняя загруженная с сервера лента. Нужна, чтобы главная работала без интернета. */
-@Entity(tableName = "cached_news")
+/**
+ * Последняя загруженная с сервера лента одной темы. Нужна, чтобы главная работала без интернета.
+ * Одна и та же новость может попасть в разные темы, поэтому ключ составной: тема + адрес.
+ */
+@Entity(tableName = "cached_news", primaryKeys = ["category", "url"])
 data class CachedNewsEntity(
-    @PrimaryKey val url: String,
+    /** Имя значения [com.pobezhkin.learningnews.domain.model.NewsCategory]. */
+    val category: String,
+    val url: String,
     val author: String?,
     val title: String,
     val description: String?,
