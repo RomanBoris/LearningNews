@@ -7,12 +7,12 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.pobezhkin.learningnews.R
 import com.pobezhkin.learningnews.presentation.components.LocalSnackbarHostState
@@ -28,7 +28,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val savedUrls by viewModel.savedUrls.collectAsState()
+    val savedUrls by viewModel.savedUrls.collectAsStateWithLifecycle()
 
     // Сеть пропала в момент сохранения: объясняем, что новость в избранном, а текст придёт позже
     val snackbarHostState = LocalSnackbarHostState.current
