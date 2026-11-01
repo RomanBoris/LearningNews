@@ -10,6 +10,8 @@
     <string name="action_refresh">Обновить</string>
     <string name="action_retry">Повторить</string>
     <string name="error_unknown">Неизвестная ошибка</string>
+    <string name="error_no_connection">Нет подключения к интернету</string>
+    <string name="error_server">Ошибка сервера: %1$d</string>
 
     <!-- Главная -->
     <string name="home_offline_banner">Нет интернета — показаны сохранённые новости</string>

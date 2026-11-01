@@ -27,6 +27,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.pobezhkin.learningnews.R
 import com.pobezhkin.learningnews.domain.model.News
+import com.pobezhkin.learningnews.domain.util.NewsLoadException
 import com.pobezhkin.learningnews.presentation.components.NewsCard
 import com.pobezhkin.learningnews.presentation.home.components.FeedCardActions
 
@@ -53,7 +54,7 @@ fun CategoryFeed(
         isEmpty && refreshState is LoadState.Loading -> LoadingContent(modifier)
 
         isEmpty && refreshState is LoadState.Error -> ErrorContent(
-            message = refreshState.error.message ?: stringResource(R.string.error_unknown),
+            message = loadErrorMessage(refreshState.error),
             onRetryClick = items::retry,
             modifier = modifier
         )
@@ -105,6 +106,14 @@ fun CategoryFeed(
             }
         }
     }
+}
+
+/** Текст для пользователя выбираем по типу ошибки, а не берём готовую строку из слоя данных. */
+@Composable
+private fun loadErrorMessage(error: Throwable): String = when (error) {
+    is NewsLoadException.NoConnection -> stringResource(R.string.error_no_connection)
+    is NewsLoadException.Server -> stringResource(R.string.error_server, error.code)
+    else -> stringResource(R.string.error_unknown)
 }
 
 @Composable
