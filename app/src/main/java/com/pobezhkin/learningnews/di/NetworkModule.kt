@@ -1,6 +1,7 @@
 package com.pobezhkin.learningnews.di
 
-import com.pobezhkin.learningnews.data.remote.NewApiService
+import com.pobezhkin.learningnews.BuildConfig
+import com.pobezhkin.learningnews.data.remote.NewsApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,36 +16,38 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private val BASE_URL = "https://newsapi.org/"
-
-@Singleton
-@Provides
-fun  HttpClienLoggingInterceptor() = HttpLoggingInterceptor()
-    .apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
-
-
-@Singleton
-@Provides
-fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
-    OkHttpClient
-        .Builder()
-        .addInterceptor(httpLoggingInterceptor)
-        .build()
-
-@Singleton
-@Provides
-fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
-    Retrofit.Builder()
-        .addConverterFactory(GsonConverterFactory.create())
-        .baseUrl(BASE_URL)
-        .client(okHttpClient)
-        .build()
-
+    private const val BASE_URL = "https://newsapi.org/"
 
     @Singleton
     @Provides
-    fun provideNewsApiService(retrofit: Retrofit) : NewApiService = retrofit.create(NewApiService::class.java)
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
+            // В логи попадает URL с apiKey, поэтому пишем их только в debug-сборке
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
+        }
 
+    @Singleton
+    @Provides
+    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
+        OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
+
+    @Singleton
+    @Provides
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Singleton
+    @Provides
+    fun provideNewsApiService(retrofit: Retrofit): NewsApiService =
+        retrofit.create(NewsApiService::class.java)
 }
