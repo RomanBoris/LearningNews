@@ -1,67 +1,52 @@
 package com.pobezhkin.learningnews.data.repository
 
-import com.pobezhkin.learningnews.BuildConfig.NEWS_API_KEY
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import com.pobezhkin.learningnews.data.local.NewsDatabase
 import com.pobezhkin.learningnews.data.local.dao.NewsCacheDao
-import com.pobezhkin.learningnews.data.mapper.toApiValue
-import com.pobezhkin.learningnews.data.mapper.toCachedEntity
+import com.pobezhkin.learningnews.data.local.dao.RemoteKeyDao
 import com.pobezhkin.learningnews.data.mapper.toNews
+import com.pobezhkin.learningnews.data.paging.NewsRemoteMediator
 import com.pobezhkin.learningnews.data.remote.NewsApiService
+import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.domain.model.NewsCategory
-import com.pobezhkin.learningnews.domain.model.NewsFeed
 import com.pobezhkin.learningnews.domain.repository.NewsRepository
-import com.pobezhkin.learningnews.domain.util.Result
-import kotlinx.coroutines.CancellationException
-import retrofit2.HttpException
-import java.io.IOException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class NewsRepositoryImpl @Inject constructor(
     private val newsApiService: NewsApiService,
-    private val newsCacheDao: NewsCacheDao
+    private val database: NewsDatabase,
+    private val newsCacheDao: NewsCacheDao,
+    private val remoteKeyDao: RemoteKeyDao
 ) : NewsRepository {
 
-    override suspend fun getTopHeadlines(category: NewsCategory): Result<NewsFeed> {
-        return try {
-            val news = newsApiService.getTopHeadlines(
-                country = COUNTRY,
-                category = category.toApiValue(),
-                apiKey = NEWS_API_KEY
-            ).articles.orEmpty()
-                .map { it.toNews() }
-                // без адреса новость не открыть и не сохранить
-                .filter { it.url.isNotBlank() }
-
-            newsCacheDao.replaceCategory(
-                category = category.name,
-                news = news.mapIndexed { index, item -> item.toCachedEntity(category, index) }
-            )
-            Result.Success(NewsFeed(news = news, isFromCache = false))
-        } catch (e: IOException) {
-            loadFromCache(category, errorMessage = "Нет подключения к интернету")
-        } catch (e: HttpException) {
-            loadFromCache(category, errorMessage = "Ошибка сервера: ${e.code()}")
-        } catch (e: CancellationException) {
-            // отмену корутины нельзя проглатывать
-            throw e
-        } catch (e: Exception) {
-            loadFromCache(category, errorMessage = "Неизвестная ошибка")
-        }
-    }
-
-    /** Старая лента лучше пустого экрана с ошибкой. Ошибку показываем, только если кэш темы пуст. */
-    private suspend fun loadFromCache(
-        category: NewsCategory,
-        errorMessage: String
-    ): Result<NewsFeed> {
-        val cached = newsCacheDao.getByCategory(category.name).map { it.toNews() }
-        return if (cached.isEmpty()) {
-            Result.Error(errorMessage)
-        } else {
-            Result.Success(NewsFeed(news = cached, isFromCache = true))
-        }
-    }
+    @OptIn(ExperimentalPagingApi::class)
+    override fun getNewsPaged(category: NewsCategory): Flow<PagingData<News>> =
+        Pager(
+            config = PagingConfig(
+                pageSize = NewsRemoteMediator.PAGE_SIZE,
+                // первая порция — одна страница, иначе подгрузятся сразу три
+                initialLoadSize = NewsRemoteMediator.PAGE_SIZE,
+                // следующую страницу просим, когда до конца списка осталось 5 новостей
+                prefetchDistance = PREFETCH_DISTANCE,
+                enablePlaceholders = false
+            ),
+            remoteMediator = NewsRemoteMediator(
+                category = category,
+                newsApiService = newsApiService,
+                database = database,
+                newsCacheDao = newsCacheDao,
+                remoteKeyDao = remoteKeyDao
+            ),
+            pagingSourceFactory = { newsCacheDao.pagingSource(category.name) }
+        ).flow.map { pagingData -> pagingData.map { it.toNews() } }
 
     private companion object {
-        const val COUNTRY = "us"
+        const val PREFETCH_DISTANCE = 5
     }
 }

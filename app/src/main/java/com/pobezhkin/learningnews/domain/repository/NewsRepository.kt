@@ -1,14 +1,17 @@
 package com.pobezhkin.learningnews.domain.repository
 
+import androidx.paging.PagingData
+import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.domain.model.NewsCategory
-import com.pobezhkin.learningnews.domain.model.NewsFeed
-import com.pobezhkin.learningnews.domain.util.Result
+import kotlinx.coroutines.flow.Flow
 
 interface NewsRepository {
 
     /**
-     * Свежая лента выбранной темы с сервера. Если сети нет или сервер ответил ошибкой,
-     * отдаёт последнюю сохранённую ленту этой темы. Ошибка — только когда кэш темы пуст.
+     * Новости выбранной темы постранично. Читаются из локальной базы, а недостающие страницы
+     * подгружаются с сервера. Если сети нет, показывается то, что уже загружено.
+     * Ошибки приходят как [com.pobezhkin.learningnews.domain.util.NewsLoadException]
+     * в состоянии загрузки списка.
      */
-    suspend fun getTopHeadlines(category: NewsCategory): Result<NewsFeed>
+    fun getNewsPaged(category: NewsCategory): Flow<PagingData<News>>
 }

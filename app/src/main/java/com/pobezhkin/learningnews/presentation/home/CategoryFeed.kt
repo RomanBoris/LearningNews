@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,57 +22,77 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import com.pobezhkin.learningnews.R
 import com.pobezhkin.learningnews.domain.model.News
 import com.pobezhkin.learningnews.presentation.components.NewsCard
 
-/** Лента одной темы: загрузка, ошибка с кнопкой «Обновить» или список новостей. */
+/**
+ * Лента одной темы. Что показывать, решаем по состоянию загрузки:
+ * пусто и грузим — крутилка, пусто и ошибка — экран ошибки, есть новости — список.
+ * Если новости есть, но обновить не вышло, над списком появляется плашка офлайн-режима.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryFeed(
-    feed: FeedUiState,
-    isRefreshing: Boolean,
+    items: LazyPagingItems<News>,
     savedUrls: Set<String>,
     onNewsClick: (String) -> Unit,
     onWatchLaterClick: (News) -> Unit,
-    onRefresh: () -> Unit,
-    onRetryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    when (feed) {
-        is FeedUiState.Loading -> LoadingContent(modifier)
+    val refreshState = items.loadState.refresh
+    val appendState = items.loadState.append
+    val isEmpty = items.itemCount == 0
 
-        is FeedUiState.Error -> ErrorContent(
-            message = feed.message,
-            onRetryClick = onRetryClick,
+    when {
+        isEmpty && refreshState is LoadState.Loading -> LoadingContent(modifier)
+
+        isEmpty && refreshState is LoadState.Error -> ErrorContent(
+            message = refreshState.error.message ?: stringResource(R.string.error_unknown),
+            onRetryClick = items::retry,
             modifier = modifier
         )
 
-        is FeedUiState.Success -> PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
+        else -> PullToRefreshBox(
+            isRefreshing = refreshState is LoadState.Loading,
+            onRefresh = items::refresh,
             modifier = modifier
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (feed.isOffline) {
+                if (refreshState is LoadState.Error) {
                     item {
-                        OfflineBanner(onRefreshClick = onRefresh)
+                        OfflineBanner(onRefreshClick = items::refresh)
                     }
                 }
 
-                if (feed.news.isEmpty()) {
+                if (isEmpty) {
                     item {
                         EmptyContent(modifier = Modifier.fillParentMaxSize())
                     }
                 }
 
-                items(feed.news) { news ->
-                    NewsCard(
-                        news = news,
-                        isSaved = news.url in savedUrls,
-                        onWatchLaterClick = { onWatchLaterClick(news) },
-                        onClick = onNewsClick
-                    )
+                items(
+                    count = items.itemCount,
+                    key = items.itemKey { it.url }
+                ) { index ->
+                    items[index]?.let { news ->
+                        NewsCard(
+                            news = news,
+                            isSaved = news.url in savedUrls,
+                            onWatchLaterClick = { onWatchLaterClick(news) },
+                            onClick = onNewsClick
+                        )
+                    }
+                }
+
+                // подвал списка: идёт подгрузка следующей страницы или она не удалась
+                when (appendState) {
+                    is LoadState.Loading -> item { AppendLoading() }
+                    is LoadState.Error -> item { AppendError(onRetryClick = items::retry) }
+                    is LoadState.NotLoading -> Unit
                 }
             }
         }
@@ -126,7 +145,7 @@ private fun EmptyContent(modifier: Modifier = Modifier) {
     }
 }
 
-/** Показываем, когда лента взята из кэша: сервер недоступен, но старые новости есть. */
+/** Показываем, когда обновить ленту не вышло, но старые новости есть. */
 @Composable
 private fun OfflineBanner(
     onRefreshClick: () -> Unit,
@@ -151,6 +170,39 @@ private fun OfflineBanner(
             TextButton(onClick = onRefreshClick) {
                 Text(stringResource(R.string.action_refresh))
             }
+        }
+    }
+}
+
+@Composable
+private fun AppendLoading(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun AppendError(
+    onRetryClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.home_append_error),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        TextButton(onClick = onRetryClick) {
+            Text(stringResource(R.string.action_retry))
         }
     }
 }
